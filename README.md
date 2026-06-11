@@ -35,8 +35,9 @@ A handful of containers are **dual-homed** (on both networks) because they need 
 11. [Request → stream: the full path flow](#11-request--stream-the-full-path-flow)
 12. [Quick reference (ports & URLs)](#12-quick-reference)
 13. [Rebuild / restore from scratch](#13-rebuild--restore-from-scratch)
-14. [Credits & further reading](#14-credits--further-reading)
-15. [Appendix: the Usenet backbone](#15-appendix-the-usenet-backbone)
+14. [Backups & maintenance](#14-backups--maintenance)
+15. [Credits & further reading](#15-credits--further-reading)
+16. [Appendix: the Usenet backbone](#16-appendix-the-usenet-backbone)
 
 ---
 

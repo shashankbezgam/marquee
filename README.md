@@ -362,14 +362,36 @@ makes imports **instant and space-free**.
 
 ```
 /data/
-├── media/          ← Plex library (mounted :ro into Plex)
-│   ├── books/  movies/  music/  other/  photos/  tv/
-├── torrents/       ← qBittorrent download target (qbit sees ONLY this)
-│   ├── books/  movies/  music/  other/  photos/  tv/
-│   └── torrents-files/        # the .torrent files themselves
-└── usenet/         ← reserved for SABnzbd (currently disabled)
-    ├── complete/   { books, movies, music, other, photos, tv }
-    └── incomplete/ { books, movies, music, other, photos, tv }
+├── media/                    # Plex library — mounted :ro into Plex
+│   ├── books/
+│   ├── movies/
+│   ├── music/
+│   ├── other/
+│   ├── photos/
+│   └── tv/
+├── torrents/                 # qBittorrent download target (qbit sees ONLY this)
+│   ├── books/
+│   ├── movies/
+│   ├── music/
+│   ├── other/
+│   ├── photos/
+│   ├── torrents-files/       # the .torrent files themselves
+│   └── tv/
+└── usenet/                   # reserved for SABnzbd (currently disabled)
+    ├── complete/
+    │   ├── books/
+    │   ├── movies/
+    │   ├── music/
+    │   ├── other/
+    │   ├── photos/
+    │   └── tv/
+    └── incomplete/
+        ├── books/
+        ├── movies/
+        ├── music/
+        ├── other/
+        ├── photos/
+        └── tv/
 ```
 
 ### Why one root + matching subfolders matters

@@ -621,7 +621,70 @@ Tailscale (needs a fresh `TS_AUTHKEY` if `TS_AUTH_ONCE=true` and state was wiped
 
 ---
 
-## 14. Credits & further reading
+## 14. Backups & maintenance
+
+The media under `/data` is re-downloadable; the contents of `/docker/appdata` are not. The
+*arr databases, Plex metadata, Tautulli history, and qBittorrent state are the irreplaceable
+part of this build — and they all live on one drive, so that drive is a single point of
+failure for everything that matters. Back it up.
+
+### Backups
+
+- **Built-in app backups (consistency-safe).** Sonarr, Radarr, and Prowlarr each write their
+  own scheduled backups into `appdata/<app>/Backups/`. These are DB-consistent (taken while
+  the app quiesces its database), so they're the safest source to restore from.
+- **Full appdata snapshot (offsite copy).** A weekly `tar` of `/docker/appdata` to a second
+  drive or remote host captures everything (including the app backups above):
+
+```bash
+  # /docker/scripts/backup-appdata.sh
+  set -euo pipefail
+  DEST=/mnt/backup                       # second drive, NAS, or rclone remote
+  STAMP=$(date +%F)
+  tar -czf "$DEST/appdata-$STAMP.tar.gz" -C /docker appdata
+  # keep the last 14 snapshots, prune the rest
+  ls -1t "$DEST"/appdata-*.tar.gz | tail -n +15 | xargs -r rm
+```
+
+```bash
+  # crontab -e  — run nightly at 04:00
+  0 4 * * * /docker/scripts/backup-appdata.sh >> /docker/scripts/backup.log 2>&1
+```
+
+  > For fully consistent SQLite snapshots of live containers, either rely on the *arr built-in
+  > backups above, or briefly stop a stack before taring it. A live `tar` is usually fine for
+  > recovery but can occasionally catch a database mid-write.
+
+### Keep custom formats in sync — Recyclarr
+
+Instead of re-importing TRaSH custom formats by hand whenever they change,
+[Recyclarr](https://recyclarr.dev/) syncs them (and their quality scores) into Radarr/Sonarr
+on a schedule from a single config file. Run it as a scheduled container or cron job.
+
+### Maintenance checklist
+
+- **Disk-space alert.** Add a monitor (Uptime Kuma push, or a notifier) for free space on
+  `/data` — a full disk makes imports fail *silently*. This is the most common day-2 outage.
+- **Tailscale MagicDNS + ACLs.** Enable MagicDNS to reach services at
+  `plex.<your-tailnet>.ts.net:32400` instead of raw `100.x` IPs, and use tailnet ACLs to
+  restrict which users/devices can reach this node.
+- **Re-apply the NVENC patch after every NVIDIA driver update** (if you use it — see §1.3); the
+  patch edits the driver library and is wiped by driver upgrades.
+- **Rotate secrets if ever exposed.** Moving keys into `.env` hides them going forward, but a
+  key that was ever pasted somewhere should be regenerated (Nord dashboard / Tailscale admin),
+  not just relocated.
+- **Optional: `/tmp/plex_transcode` on tmpfs (RAM)** for faster transcoding and less SSD wear,
+  if you have spare memory:
+
+```yaml
+  # in the plex service
+  tmpfs:
+    - /transcode
+```
+
+---
+
+## 15. Credits & further reading
 
 - **TRaSH Guides** — the bible for this whole stack: <https://trash-guides.info/>
 - **Servarr wiki** (Sonarr/Radarr/Prowlarr docs): <https://wiki.servarr.com/>
@@ -635,7 +698,7 @@ Tailscale (needs a fresh `TS_AUTHKEY` if `TS_AUTH_ONCE=true` and state was wiped
 
 ---
 
-## 15. Appendix: the Usenet backbone
+## 16. Appendix: the Usenet backbone
 
 Kept here for reference — a map of Usenet providers and their backbones. Usenet predates the
 modern web: a distributed discussion/broadcast network from the early internet era, whose

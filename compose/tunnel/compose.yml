@@ -1,0 +1,45 @@
+
+services:
+    # cloudflared:
+    #     image: cloudflare/cloudflared:latest
+    #     container_name: cloudflared
+    #     hostname: cloudflared
+    #     restart: unless-stopped
+    #     command: tunnel --no-autoupdate run
+    #     environment:
+    #         - TUNNEL_TOKEN=<YOUR_CLOUDFLARE_TUNNEL_TOKEN_HERE>
+
+     tsrouterh52:
+        image: tailscale/tailscale:latest
+        container_name: tsrouterh52
+        hostname: tsrouterh52
+        volumes:
+            - /docker/appdata/tailscale/state:/var/lib/tailscale
+        devices:
+            - /dev/net/tun:/dev/net/tun
+        environment:
+            - TS_AUTHKEY=${TS_AUTHKEY}
+            - TS_STATE_DIR=/var/lib/tailscale
+            - TS_AUTH_ONCE=true
+            - TS_USERSPACE=false
+        cap_add:
+            - NET_ADMIN
+            - NET_RAW
+        networks:
+            ms-shared-lobby:
+                ipv4_address: 172.26.0.5
+        restart: unless-stopped
+
+     nginx-proxy:
+        image: nginx:alpine
+        container_name: nginx-proxy
+        network_mode: "service:tsrouterh52" # Merges with the Tailscale network container
+        volumes:
+            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+        depends_on:
+            - tsrouterh52
+        restart: unless-stopped
+
+networks:
+    ms-shared-lobby:
+        external: true

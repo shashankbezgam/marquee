@@ -1,0 +1,217 @@
+services:
+    gluetunvpn:
+        image: qmcgaw/gluetun
+        container_name: gluetunvpn
+        hostname: gluetunvpn
+        cap_add:
+            - NET_ADMIN
+        devices:
+            - /dev/net/tun:/dev/net/tun
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/appdata/gluetun:/gluetun
+        environment:
+            - VPN_SERVICE_PROVIDER=nordvpn
+            - VPN_TYPE=wireguard # WireGuard is much faster than OpenVPN
+            # OPTIONAL: Pick a specific country if you don't want the default closest one
+            - SERVER_COUNTRIES=Singapore,Malaysia,Hong Kong,Netherlands,Switzerland,United States
+            - SERVER_CITIES=Seattle,Los Angeles,San Francisco,New York
+            # YOUR CREDENTIALS GO HERE:
+            - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+            # Glutun can act as an HTTP/HTTPS web proxy
+            # that passes your traffic through the VPN
+            # Using built-in HTTP Proxy and Shadowsocks Proxy
+            # - HTTPPROXY=on   # HTTP proxy is highly recommended over SOCKS5
+            # - SHADOWSOCKS=on
+        ports:
+            - 8080:8080 # qBittorrent WebUI
+            # - 8888:8888 # Built-in HTTP Proxy
+            # - 8388:8388 # Shadowsocks Proxy (TCP/UDP)
+            - 8191:8191 # Flaresolverr
+            - 9696:9696 # Prowlarr
+        networks:
+            ms-shared-lobby:
+                ipv4_address: 172.26.0.30
+            ms-private-lobby:
+                ipv4_address: 172.27.0.30
+        healthcheck:
+            test: ["CMD-SHELL", "ping -c 1 1.1.1.1 || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+        restart: unless-stopped
+
+    qbittorrent:
+        image: lscr.io/linuxserver/qbittorrent:latest
+        container_name: qbittorrent
+        network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Asia/Kolkata
+            - WEBUI_PORT=8080
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/appdata/qbittorrent/config:/config
+            - /data/torrents:/data/torrents/
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "curl", "-f", "https://ifconfig.me"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+        depends_on:
+            gluetunvpn:
+                condition: service_healthy # Wait until VPN is connected
+
+    # A Better Qbittorrent WebUI
+    qui:
+        image: ghcr.io/autobrr/qui:latest
+        container_name: qui
+        hostname: qui
+        ports:
+            - 7476:7476
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Asia/Kolkata
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/appdata/qui/config:/config
+            - /data/torrents:/data/torrents/
+        networks:
+            ms-shared-lobby:
+                ipv4_address: 172.26.0.40
+        restart: unless-stopped
+        depends_on:
+            - qbittorrent
+
+    sonarr:
+        image: lscr.io/linuxserver/sonarr:latest
+        container_name: sonarr
+        # NO network_mode here. It uses your normal, fast home internet.
+        hostname: sonarr
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Asia/Kolkata
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/appdata/sonarr:/config
+            - /data:/data # Shared media folder
+        ports:
+            - 8989:8989 # Exposes Sonarr WebUI normally
+        networks:
+            ms-private-lobby:
+                ipv4_address: 172.27.0.11
+        restart: unless-stopped
+
+    radarr:
+        image: lscr.io/linuxserver/radarr:latest
+        container_name: radarr
+        hostname: radarr
+        # NO network_mode here. It uses your normal, fast home internet.
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Asia/Kolkata
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/appdata/radarr:/config
+            - /data:/data # Shared media folder
+        ports:
+            - 7878:7878 # Exposes Radarr WebUI normally
+        networks:
+            ms-private-lobby:
+                ipv4_address: 172.27.0.12
+        restart: unless-stopped
+
+    prowlarr:
+        image: lscr.io/linuxserver/prowlarr:latest
+        container_name: prowlarr
+        # hostname: prowlarr
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Asia/Kolkata
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/appdata/prowlarr:/config
+        network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
+        # ports:
+        #     - 9696:9696 # Exposes Prowlarr WebUI normally
+        # networks:
+        #     ms-private-lobby:
+        #         ipv4_address: 172.27.0.13
+        restart: unless-stopped
+        depends_on:
+            gluetunvpn:
+                condition: service_healthy # Wait until VPN is connected
+
+    bazarr:
+        image: ghcr.io/hotio/bazarr:latest
+        container_name: bazarr
+        hostname: bazarr
+        ports:
+            - 6767:6767
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Asia/Kolkata
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/appdata/bazarr:/config
+            - /data/media:/data/media
+        networks:
+            ms-private-lobby:
+                ipv4_address: 172.27.0.14
+        restart: unless-stopped
+
+    flaresolverr:
+        image: ghcr.io/flaresolverr/flaresolverr:latest
+        container_name: flaresolverr
+        # hostname: flaresolverr
+        network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
+        # ports:
+        #     - 8191:8191
+        environment:
+            - LOG_LEVEL=info
+            - LOG_HTML=false
+            - CAPTCHA_SOLVER=none
+            - TZ=Asia/Kolkata
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/appdata/flaresolverr:/config
+        restart: unless-stopped
+        # networks:
+        #     ms-private-lobby:
+        #         ipv4_address: 172.27.0.15
+        depends_on:
+            gluetunvpn:
+                condition: service_healthy # Wait until VPN is connected
+
+    # sabnzbd:
+    #     container_name: sabnzbd
+    #     hostname: sabnzbd
+    #     image: ghcr.io/hotio/sabnzbd:latest
+    #     restart: unless-stopped
+    #     ports:
+    #         - 8085:8085
+    #         - 9096:9096
+    #     environment:
+    #         - PUID=1000
+    #         - PGID=1000
+    #         - TZ=Asia/Kolkata
+    #     networks:
+    #       ms-private-lobby:
+    #           ipv4_address: 172.27.0.18
+    #     volumes:
+    #         - /etc/localtime:/etc/localtime:ro
+    #         - /docker/appdata/sabnzbd:/config
+    #         - /data/usenet:/data/usenet:rw- -
+
+networks:
+    ms-shared-lobby:
+        external: true
+    ms-private-lobby:
+        external: true

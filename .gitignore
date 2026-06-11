@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+appdata/
+
+# secrets — real values never committed
+.env
+**/.env
+!**/.env.example
+
+# runtime state that must never be versioned
+**/data/          # dockge's own ./data, etc.
+*.db

@@ -25,10 +25,8 @@ services:
             - "32413:32413/udp"
             - "32414:32414/udp"
         networks:
-            ms-shared-lobby:
-                ipv4_address: 172.26.0.10
-            ms-private-lobby:
-                ipv4_address: 172.27.0.10
+            - edge_net
+            - backend_net
         deploy:
             resources:
                 reservations:
@@ -55,8 +53,7 @@ services:
         ports:
             - 8181:8181
         networks:
-            ms-shared-lobby:
-                ipv4_address: 172.26.0.50
+            - edge_net
         depends_on:
             - plex
 
@@ -75,10 +72,8 @@ services:
             - /etc/localtime:/etc/localtime:ro
             - /docker/appdata/seerr/config:/app/config
         networks:
-            ms-shared-lobby:
-                ipv4_address: 172.26.0.20
-            ms-private-lobby:
-                ipv4_address: 172.27.0.20
+            - edge_net
+            - backend_net
         ports:
             - 5055:5055
         healthcheck:
@@ -92,7 +87,7 @@ services:
             - plex
 
 networks:
-    ms-shared-lobby:
+    edge_net:
         external: true
-    ms-private-lobby:
+    backend_net:
         external: true

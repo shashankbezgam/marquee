@@ -6,6 +6,8 @@ services:
 
     dockge:
         image: louislam/dockge:1
+        container_name: dockge
+        hostname: dockge
         restart: unless-stopped
         ports:
             - 5001:5001
@@ -23,12 +25,12 @@ services:
             # Tell Dockge where to find the stacks
             - DOCKGE_STACKS_DIR=/opt/stacks
         networks:
-            ms-private-lobby:
-                ipv4_address: 172.27.0.17
+            - backend_net
 
     uptime-kuma:
         image: louislam/uptime-kuma:2
         container_name: uptime-kuma
+        hostname: uptime-kuma
         restart: unless-stopped
         ports:
             - 3001:3001 # This maps the container port "3001" to the host port "3001"
@@ -50,9 +52,8 @@ services:
                 max-size: "10m"
                 max-file: "3"
         networks:
-            ms-private-lobby:
-                ipv4_address: 172.27.0.16
+            - backend_net
 
 networks:
-    ms-private-lobby:
+    backend_net:
         external: true

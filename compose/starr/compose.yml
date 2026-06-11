@@ -30,10 +30,7 @@ services:
             - 8191:8191 # Flaresolverr
             - 9696:9696 # Prowlarr
         networks:
-            ms-shared-lobby:
-                ipv4_address: 172.26.0.30
-            ms-private-lobby:
-                ipv4_address: 172.27.0.30
+            - backend_net
         healthcheck:
             test: ["CMD-SHELL", "ping -c 1 1.1.1.1 || exit 1"]
             interval: 10s
@@ -80,8 +77,8 @@ services:
             - /docker/appdata/qui/config:/config
             - /data/torrents:/data/torrents/
         networks:
-            ms-shared-lobby:
-                ipv4_address: 172.26.0.40
+            - edge_net
+            - backend_net
         restart: unless-stopped
         depends_on:
             - qbittorrent
@@ -102,8 +99,7 @@ services:
         ports:
             - 8989:8989 # Exposes Sonarr WebUI normally
         networks:
-            ms-private-lobby:
-                ipv4_address: 172.27.0.11
+            - backend_net
         restart: unless-stopped
 
     radarr:
@@ -122,13 +118,13 @@ services:
         ports:
             - 7878:7878 # Exposes Radarr WebUI normally
         networks:
-            ms-private-lobby:
-                ipv4_address: 172.27.0.12
+            - backend_net
         restart: unless-stopped
 
     prowlarr:
         image: lscr.io/linuxserver/prowlarr:latest
         container_name: prowlarr
+        network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
         # hostname: prowlarr
         environment:
             - PUID=1000
@@ -137,12 +133,10 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /docker/appdata/prowlarr:/config
-        network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
         # ports:
         #     - 9696:9696 # Exposes Prowlarr WebUI normally
         # networks:
-        #     ms-private-lobby:
-        #         ipv4_address: 172.27.0.13
+        #     - backend_net
         restart: unless-stopped
         depends_on:
             gluetunvpn:
@@ -163,8 +157,7 @@ services:
             - /docker/appdata/bazarr:/config
             - /data/media:/data/media
         networks:
-            ms-private-lobby:
-                ipv4_address: 172.27.0.14
+            - backend_net
         restart: unless-stopped
 
     flaresolverr:
@@ -184,8 +177,7 @@ services:
             - /docker/appdata/flaresolverr:/config
         restart: unless-stopped
         # networks:
-        #     ms-private-lobby:
-        #         ipv4_address: 172.27.0.15
+        #   - backend_net
         depends_on:
             gluetunvpn:
                 condition: service_healthy # Wait until VPN is connected
@@ -203,15 +195,14 @@ services:
     #         - PGID=1000
     #         - TZ=Asia/Kolkata
     #     networks:
-    #       ms-private-lobby:
-    #           ipv4_address: 172.27.0.18
+    #         - backend_net
     #     volumes:
     #         - /etc/localtime:/etc/localtime:ro
     #         - /docker/appdata/sabnzbd:/config
     #         - /data/usenet:/data/usenet:rw- -
 
 networks:
-    ms-shared-lobby:
+    edge_net:
         external: true
-    ms-private-lobby:
+    backend_net:
         external: true

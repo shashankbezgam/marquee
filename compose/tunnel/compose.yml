@@ -26,8 +26,7 @@ services:
             - NET_ADMIN
             - NET_RAW
         networks:
-            ms-shared-lobby:
-                ipv4_address: 172.26.0.5
+            - edge_net
         restart: unless-stopped
 
      nginx-proxy:
@@ -41,5 +40,5 @@ services:
         restart: unless-stopped
 
 networks:
-    ms-shared-lobby:
+    edge_net:
         external: true

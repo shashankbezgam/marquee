@@ -15,7 +15,7 @@ The two Docker networks map directly onto that idea:
 | `edge_net` | Front of house — anything the Tailscale doorman may reach | Lobby, box office, the screen |
 | `backend_net` | Back of house — automation crew + management | Projection booth, vault, courier dock |
 
-[See the full topology blueprint ›](https://htmlpreview.github.io/?https://github.com/shashankbezgam/marquee/blob/main/docs/homelab-topology.html)
+[▶ See the full topology blueprint](https://htmlpreview.github.io/?https://github.com/shashankbezgam/marquee/blob/main/docs/homelab-topology.html)
 
 A handful of containers are **dual-homed** (on both networks) because they need to greet guests
 *and* talk to the back office — Plex, seerr, and qui.
@@ -268,11 +268,9 @@ hardlinks and instant moves possible (see §8).
 
 ### Architecture at a glance
 
-[![Marquee network topology](docs/homelab-topology.png)](https://shashankbezgam.github.io/marquee/docs/homelab-topology.html)
+[![Marquee network topology](docs/homelab-topology.png)](https://htmlpreview.github.io/?https://github.com/shashankbezgam/marquee/blob/main/docs/homelab-topology.html)
 
-> 📐 Static preview above — [open the interactive blueprint ›](https://shashankbezgam.github.io/marquee/docs/homelab-topology.html)
-
-[▶ View interactive topology](https://htmlpreview.github.io/?https://github.com/shashankbezgam/marquee/blob/main/docs/homelab-topology.html)
+> ▶ Static preview above — [open the interactive blueprint ›](https://htmlpreview.github.io/?https://github.com/shashankbezgam/marquee/blob/main/docs/homelab-topology.html)
 
 Two **external** Docker bridge networks connect everything...
 
@@ -564,6 +562,38 @@ quality scoring rules):
 
 - [TRaSH — Radarr custom formats](https://trash-guides.info/Radarr/Radarr-collection-of-custom-formats/)
 - [TRaSH — Sonarr guides](https://trash-guides.info/Sonarr/)
+
+### Plex network — Custom server access URLs
+
+Because the home connection is behind CGNAT (see §2), Plex's built-in **Remote Access**
+(which needs port forwarding) can't work. Instead, tell Plex exactly how to reach itself:
+fill in **Settings → Network → Custom server access URLs** with every path a client might use
+— comma-separated, **no spaces**, each with the scheme and port `32400`:
+
+```
+http://<LAN-IP>:32400,http://<LAN-hostname>:32400,http://<tailscale-IP>:32400,http://<magicdns-name>:32400
+```
+
+Example:
+
+```
+http://192.168.1.50:32400,http://h52.lan:32400,http://100.101.102.103:32400,http://h52.tailnet-name.ts.net:32400
+```
+
+| Entry | What it's for |
+|---|---|
+| `http://192.168.1.50:32400` | **Local LAN server IP** — fastest path for devices at home |
+| `http://h52.lan:32400` | **Local LAN DNS hostname** — same path, but survives a DHCP IP change |
+| `http://100.101.102.103:32400` | **Tailscale IP** — direct connect for remote devices on the tailnet |
+| `http://h52.tailnet-name.ts.net:32400` | **MagicDNS name** — same as above, but name-stable |
+
+This makes Plex advertise these exact addresses to clients so they connect **directly**
+instead of falling back to Plex's relay (slow and bandwidth-capped). LAN clients take the
+local entries; remote clients take the Tailscale entries.
+
+> **Caveat:** these are plain `http://` URLs, so set **Settings → Network → Secure connections
+> = Preferred** (not *Required*), or Plex may refuse them. That's safe here — Tailscale already
+> encrypts the transport end-to-end, and LAN traffic never leaves your own network.
 
 ### The 4K transcode problem
 

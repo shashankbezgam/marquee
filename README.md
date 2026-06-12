@@ -20,6 +20,70 @@ A handful of containers are **dual-homed** (on both networks) because they need 
 
 ---
 
+## Installation / Recreation
+
+This setup expects two folders at the filesystem **root**: `/docker` (all Docker config) and
+`/data` (all media + downloads), on the **same drive/filesystem** so hardlinks work.
+
+### 1. Create the directory structure
+
+```bash
+# /docker/appdata/* is created automatically by Docker on first `compose up`
+# (it makes any missing bind-mount source dir; the LSIO images then fix /config
+#  ownership to PUID/PGID). /docker/compose is created by the git clone in step 2.
+# So only /data needs pre-creating — its genre subfolders are NOT bind mounts:
+
+sudo mkdir -p \
+  /data/media/{books,movies,music,other,photos,tv} \
+  /data/torrents/{books,movies,music,other,photos,tv,torrents-files} \
+  /data/usenet/{incomplete,complete}/{books,movies,music,other,photos,tv}
+```
+
+### 2. Clone the repo into `/docker/compose`
+
+```bash
+sudo rm -rf /docker/compose                       # ensure it's empty for the clone
+sudo git clone https://github.com/<you>/marquee.git /docker/compose
+```
+
+### 3. Set ownership to your user (PUID/PGID — see §9)
+
+```bash
+sudo chown -R 1000:1000 /docker /data
+# /docker/appdata ownership is handled by each container via PUID/PGID on first run.
+```
+
+### 4. Create the shared external networks
+
+```bash
+docker network create edge_net
+docker network create backend_net
+```
+
+### 5. Add your secrets
+
+Each stack reads a `.env` from its own folder. Create them from your password manager:
+
+```bash
+# /docker/compose/tunnel/.env  →  TS_AUTHKEY=...
+# /docker/compose/starr/.env   →  WIREGUARD_PRIVATE_KEY=...
+# /docker/compose/plex/.env    →  PLEX_CLAIM=...   (first claim only; expires in ~4 min)
+```
+
+### 6. Bring everything up
+
+```bash
+for s in tunnel plex starr util; do
+  docker compose -f /docker/compose/$s/compose.yml up -d
+done
+```
+
+> **Dockge note:** the `util` stack sets `DOCKGE_STACKS_DIR=/opt/stacks`. Since the stacks live
+> in `/docker/compose`, either change that to `DOCKGE_STACKS_DIR=/docker/compose` (and mount it
+> identically on both sides) or symlink it: `sudo ln -s /docker/compose /opt/stacks`.
+
+---
+
 ## Table of contents
 
 1. [Host bring-up (OS, GPU, drivers)](#1-host-bring-up)
@@ -138,19 +202,40 @@ hardlinks and instant moves possible (see §8).
 ### `/docker` — compose, config, scripts
 
 ```
-/docker/
-├── appdata/                 # PERSISTENT config + databases, one folder per service
-│   ├── bazarr/  flaresolverr/  gluetun/  plex/  prowlarr/
-│   ├── qbittorrent/  qui/  radarr/  seerr/  sonarr/
-│   ├── tailscale/  tautulli/   (← JBOPS scripts live here)  uptime-kuma/
-│   └── …
-├── compose/                 # one folder per STACK, each with its own .env
-│   ├── plex/    { compose.yml, .env }
-│   ├── starr/   { compose.yml, .env }
-│   ├── tunnel/  { compose.yml, .env, nginx.conf }
-│   └── util/    { compose.yml, .env }
-├── README.md                # this file
-└── scripts/
+/docker/                        # at filesystem root, alongside /data
+├── appdata/                    # PERSISTENT config + databases — one folder per service
+│   │                           # ⚠️ NOT in the git repo (holds API keys, tokens, passkeys)
+│   ├── bazarr/
+│   ├── flaresolverr/
+│   ├── gluetun/
+│   ├── plex/
+│   ├── prowlarr/
+│   ├── qbittorrent/
+│   ├── qui/
+│   ├── radarr/
+│   ├── seerr/
+│   ├── sonarr/
+│   ├── tailscale/
+│   ├── tautulli/               # JBOPS scripts cloned in here → /config/JBOPS
+│   └── uptime-kuma/
+└── compose/                    # ← THE GIT REPO starts here
+    ├── plex/
+    │   ├── compose.yml
+    │   └── .env                # git-ignored
+    ├── starr/
+    │   ├── compose.yml
+    │   └── .env                # git-ignored
+    ├── tunnel/
+    │   ├── compose.yml
+    │   ├── nginx.conf
+    │   └── .env                # git-ignored
+    ├── util/
+    │   ├── compose.yml
+    │   └── .env                # git-ignored
+    ├── scripts/
+    │   └── backup-appdata.sh
+    ├── .gitignore
+    └── README.md
 ```
 
 - **`compose/<stack>/`** — declarative source for each stack. This is what goes in Git.

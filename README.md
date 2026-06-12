@@ -20,7 +20,7 @@ A handful of containers are **dual-homed** (on both networks) because they need 
 
 ---
 
-## Installation / Recreation
+## Deployment & Setup
 
 This setup expects two folders at the filesystem **root**: `/docker` (all Docker config) and
 `/data` (all media + downloads), on the **same drive/filesystem** so hardlinks work.

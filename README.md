@@ -15,6 +15,8 @@ The two Docker networks map directly onto that idea:
 | `edge_net` | Front of house — anything the Tailscale doorman may reach | Lobby, box office, the screen |
 | `backend_net` | Back of house — automation crew + management | Projection booth, vault, courier dock |
 
+[See the full topology blueprint ›](https://htmlpreview.github.io/?https://github.com/shashankbezgam/marquee/blob/main/docs/homelab-topology.html)
+
 A handful of containers are **dual-homed** (on both networks) because they need to greet guests
 *and* talk to the back office — Plex, seerr, and qui.
 
@@ -263,6 +265,16 @@ hardlinks and instant moves possible (see §8).
 ---
 
 ## 4. The networking model
+
+### Architecture at a glance
+
+[![Marquee network topology](docs/homelab-topology.png)](https://shashankbezgam.github.io/marquee/docs/homelab-topology.html)
+
+> 📐 Static preview above — [open the interactive blueprint ›](https://shashankbezgam.github.io/marquee/docs/homelab-topology.html)
+
+[▶ View interactive topology](https://htmlpreview.github.io/?https://github.com/shashankbezgam/marquee/blob/main/docs/homelab-topology.html)
+
+Two **external** Docker bridge networks connect everything...
 
 Two **external** Docker bridge networks connect everything. They're created once, outside any
 single stack, so all four stacks can share them:
@@ -791,7 +803,7 @@ modern web: a distributed discussion/broadcast network from the early internet e
 infrastructure is still used today as a download backbone (the path SABnzbd would take, hence
 the reserved `/data/usenet` folders above).
 
-![Usenet Providers and Backbones (2025-06-30)](./usenet-backbone.svg)
+![Usenet Providers and Backbones (2025-06-30)](./docs/usenet-backbone.svg)
 
 ---
 

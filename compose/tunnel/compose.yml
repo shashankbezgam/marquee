@@ -15,6 +15,7 @@ services:
         hostname: tsrouterh52
         volumes:
             - /docker/appdata/tailscale/state:/var/lib/tailscale
+            - /lib/modules:/lib/modules:ro
         devices:
             - /dev/net/tun:/dev/net/tun
         environment:

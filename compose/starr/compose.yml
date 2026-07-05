@@ -21,11 +21,11 @@ services:
             # Glutun can act as an HTTP/HTTPS web proxy
             # that passes your traffic through the VPN
             # Using built-in HTTP Proxy and Shadowsocks Proxy
-            # - HTTPPROXY=on   # HTTP proxy is highly recommended over SOCKS5
+            - HTTPPROXY=on   # HTTP proxy is highly recommended over SOCKS5
             # - SHADOWSOCKS=on
         ports:
             - 8080:8080 # qBittorrent WebUI
-            # - 8888:8888 # Built-in HTTP Proxy
+            - 8888:8888 # Built-in HTTP Proxy
             # - 8388:8388 # Shadowsocks Proxy (TCP/UDP)
             - 8191:8191 # Flaresolverr
             - 9696:9696 # Prowlarr
@@ -77,7 +77,6 @@ services:
             - /docker/appdata/qui/config:/config
             - /data/torrents:/data/torrents/
         networks:
-            - edge_net
             - backend_net
         restart: unless-stopped
         depends_on:
@@ -142,6 +141,24 @@ services:
             gluetunvpn:
                 condition: service_healthy # Wait until VPN is connected
 
+    lidarr:
+      image: lscr.io/linuxserver/lidarr:latest
+      container_name: lidarr
+      hostname: lidarr
+      environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=Asia/Kolkata
+      volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /docker/appdata/lidarr:/config
+          - /data:/data # Shared media folder
+      ports:
+          - 8686:8686 # Exposes Lidarr WebUI normally
+      networks:
+          - backend_net
+      restart: unless-stopped
+
     bazarr:
         image: ghcr.io/hotio/bazarr:latest
         container_name: bazarr
@@ -202,7 +219,5 @@ services:
     #         - /data/usenet:/data/usenet:rw- -
 
 networks:
-    edge_net:
-        external: true
     backend_net:
         external: true

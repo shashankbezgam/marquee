@@ -1,0 +1,50 @@
+theme: 'light'
+
+server:
+  address: 'tcp://0.0.0.0:9091'
+
+log:
+  level: 'info'
+
+# Secrets come from .env via env_file in compose. Do NOT put them here.
+# Authelia binds them by name:
+#   AUTHELIA_SESSION_SECRET
+#   AUTHELIA_STORAGE_ENCRYPTION_KEY
+#   AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET
+#   AUTHELIA_NOTIFIER_SMTP_USERNAME / _PASSWORD / _SENDER
+
+authentication_backend:
+  file:
+    path: '/config/users_database.yml'
+
+session:
+  cookies:
+    - name: 'authelia_session'
+      domain: 'home52lab.duckdns.org'
+      authelia_url: 'https://auth.home52lab.duckdns.org'
+      default_redirection_url: 'https://seerr.home52lab.duckdns.org'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 month'
+
+storage:
+  local:
+    path: '/config/db.sqlite3'
+
+notifier:
+  disable_startup_check: false
+  smtp:
+    address: 'submission://smtp.gmail.com:587'
+
+access_control:
+  default_policy: 'deny'
+  rules:
+    - domain:
+        - 'auth.home52lab.duckdns.org'
+        - 'plex.home52lab.duckdns.org'
+        - 'seerr.home52lab.duckdns.org'
+      policy: 'bypass'
+    - domain:
+        - 'tautulli.home52lab.duckdns.org'
+        - 'qui.home52lab.duckdns.org'
+      policy: 'two_factor'

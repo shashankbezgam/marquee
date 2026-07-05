@@ -25,7 +25,6 @@ services:
             - "32413:32413/udp"
             - "32414:32414/udp"
         networks:
-            - edge_net
             - backend_net
         deploy:
             resources:
@@ -53,7 +52,7 @@ services:
         ports:
             - 8181:8181
         networks:
-            - edge_net
+            - backend_net
         depends_on:
             - plex
 
@@ -72,7 +71,6 @@ services:
             - /etc/localtime:/etc/localtime:ro
             - /docker/appdata/seerr/config:/app/config
         networks:
-            - edge_net
             - backend_net
         ports:
             - 5055:5055
@@ -87,7 +85,5 @@ services:
             - plex
 
 networks:
-    edge_net:
-        external: true
     backend_net:
         external: true

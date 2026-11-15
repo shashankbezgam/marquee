@@ -4,11 +4,34 @@ services:
     # > cd /opt/dockge
     # > docker compose up -d
 
+    wud:
+        image: getwud/wud:latest
+        container_name: wud
+        restart: unless-stopped
+        ports:
+            - "3000:3000"
+        env_file:
+            - .env
+        environment:
+            - TZ=Asia/Kolkata
+            - WUD_WATCHER_LOCAL_CRON=0 9 * * *
+            - WUD_TRIGGER_DOCKERCOMPOSE_AUTO_PRUNE=true
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /docker/compose:/docker/compose
+        networks:
+            - backend_net
     dockge:
         image: louislam/dockge:1
         container_name: dockge
         hostname: dockge
         restart: unless-stopped
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         ports:
             - 5001:5001
         volumes:
@@ -32,6 +55,9 @@ services:
         container_name: uptime-kuma
         hostname: uptime-kuma
         restart: unless-stopped
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         ports:
             - 3001:3001 # This maps the container port "3001" to the host port "3001"
         volumes:
@@ -53,6 +79,27 @@ services:
                 max-file: "3"
         networks:
             - backend_net
+
+    portainer:
+        image: portainer/portainer-ce:lts
+        container_name: portainer
+        hostname: portainer
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
+        restart: unless-stopped
+        ports:
+            - 8000:8000
+            - 9443:9443
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - portainer_data:/data
+        networks:
+            - backend_net
+
+volumes:
+    portainer_data:
+        driver: local
 
 networks:
     backend_net:

@@ -41,8 +41,7 @@ access_control:
   rules:
     - domain:
         - 'auth.home52lab.duckdns.org'
-        - 'plex.home52lab.duckdns.org'
-        - 'seerr.home52lab.duckdns.org'
+        # - 'seerr.home52lab.duckdns.org'
       policy: 'bypass'
     - domain:
         - 'tautulli.home52lab.duckdns.org'

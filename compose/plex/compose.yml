@@ -3,6 +3,9 @@ services:
         image: lscr.io/linuxserver/plex:latest
         container_name: plex
         hostname: plex
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -45,6 +48,9 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /docker/appdata/tautulli:/config
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -57,32 +63,35 @@ services:
             - plex
 
     # New version of Overseer
-    seerr:
-        image: ghcr.io/seerr-team/seerr:latest
-        init: true
-        container_name: seerr
-        hostname: seerr
-        environment:
-            - LOG_LEVEL=debug
-            - PUID=1000
-            - PGID=1000
-            - TZ=Asia/Kolkata
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-            - /docker/appdata/seerr/config:/app/config
-        networks:
-            - backend_net
-        ports:
-            - 5055:5055
-        healthcheck:
-            test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1
-            start_period: 20s
-            timeout: 3s
-            interval: 15s
-            retries: 3
-        restart: unless-stopped
-        depends_on:
-            - plex
+    # seerr:
+    #     image: ghcr.io/seerr-team/seerr:latest
+    #     init: true
+    #     container_name: seerr
+    #     hostname: seerr
+    #     labels:
+    #         - wud.watch.digest=true
+    #         - wud.trigger.exclude=dockercompose.auto
+    #     environment:
+    #         - LOG_LEVEL=debug
+    #         - PUID=1000
+    #         - PGID=1000
+    #         - TZ=Asia/Kolkata
+    #     volumes:
+    #         - /etc/localtime:/etc/localtime:ro
+    #         - /docker/appdata/seerr/config:/app/config
+    #     networks:
+    #         - backend_net
+    #     ports:
+    #         - 5055:5055
+    #     healthcheck:
+    #         test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1
+    #         start_period: 20s
+    #         timeout: 3s
+    #         interval: 15s
+    #         retries: 3
+    #     restart: unless-stopped
+    #     depends_on:
+    #         - plex
 
 networks:
     backend_net:

@@ -7,6 +7,9 @@ services:
             - NET_ADMIN
         devices:
             - /dev/net/tun:/dev/net/tun
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /docker/appdata/gluetun:/gluetun
@@ -42,6 +45,9 @@ services:
         image: lscr.io/linuxserver/qbittorrent:latest
         container_name: qbittorrent
         network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -68,6 +74,9 @@ services:
         hostname: qui
         ports:
             - 7476:7476
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -87,6 +96,9 @@ services:
         container_name: sonarr
         # NO network_mode here. It uses your normal, fast home internet.
         hostname: sonarr
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -106,6 +118,9 @@ services:
         container_name: radarr
         hostname: radarr
         # NO network_mode here. It uses your normal, fast home internet.
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -125,6 +140,9 @@ services:
         container_name: prowlarr
         network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
         # hostname: prowlarr
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -142,22 +160,25 @@ services:
                 condition: service_healthy # Wait until VPN is connected
 
     lidarr:
-      image: lscr.io/linuxserver/lidarr:latest
-      container_name: lidarr
-      hostname: lidarr
-      environment:
-        - PUID=1000
-        - PGID=1000
-        - TZ=Asia/Kolkata
-      volumes:
-          - /etc/localtime:/etc/localtime:ro
-          - /docker/appdata/lidarr:/config
-          - /data:/data # Shared media folder
-      ports:
-          - 8686:8686 # Exposes Lidarr WebUI normally
-      networks:
-          - backend_net
-      restart: unless-stopped
+        image: lscr.io/linuxserver/lidarr:latest
+        container_name: lidarr
+        hostname: lidarr
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Asia/Kolkata
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/appdata/lidarr:/config
+            - /data:/data # Shared media folder
+        ports:
+            - 8686:8686 # Exposes Lidarr WebUI normally
+        networks:
+            - backend_net
+        restart: unless-stopped
 
     bazarr:
         image: ghcr.io/hotio/bazarr:latest
@@ -165,6 +186,9 @@ services:
         hostname: bazarr
         ports:
             - 6767:6767
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -184,6 +208,9 @@ services:
         network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
         # ports:
         #     - 8191:8191
+        labels:
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
         environment:
             - LOG_LEVEL=info
             - LOG_HTML=false
@@ -207,6 +234,9 @@ services:
     #     ports:
     #         - 8085:8085
     #         - 9096:9096
+    #     labels:
+    #         - wud.watch.digest=true
+    #         - wud.trigger.exclude=dockercompose.auto
     #     environment:
     #         - PUID=1000
     #         - PGID=1000

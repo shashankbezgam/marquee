@@ -1,8 +1,38 @@
 services:
-    # Create directories that store your stacks and store Dockge's stack
-    # > mkdir -p /opt/stacks /opt/dockge
-    # > cd /opt/dockge
-    # > docker compose up -d
+    docker-socket-proxy:
+        image: tecnativa/docker-socket-proxy:latest
+        container_name: docker-socket-proxy
+        labels:
+            - wud.watch=true
+            - wud.watch.digest=true
+            - wud.trigger.exclude=dockercompose.auto
+        restart: unless-stopped
+        # ports:
+        # # Bind to internal LAN/VPC IP or firewall port 2375 to allow only Central WUD
+        # - "2375:2375"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        environment:
+            # Enable read-only access for container and image discovery
+            - CONTAINERS=1
+            - IMAGES=1
+            - INFO=1
+            - VERSION=1
+            - EVENTS=1
+            - PING=1
+            - POST=1
+            - NETWORKS=1
+            - VOLUMES=1
+            # Explicitly deny all mutating operations
+            - DELETE=0
+            - BUILD=0
+            - COMMIT=0
+            - EXEC=0
+            - SECRETS=0
+            - SWARM=0
+            - SYSTEM=0
+        networks:
+            - socket_net
 
     wud:
         image: getwud/wud:latest
@@ -14,24 +44,31 @@ services:
             - .env
         environment:
             - TZ=Asia/Kolkata
-            - WUD_WATCHER_LOCAL_CRON=0 9 * * *
-            - WUD_TRIGGER_DOCKERCOMPOSE_AUTO_PRUNE=true
         labels:
-            - wud.watch.digest=true
+            - wud.watch=true
+            - wud.watch.digest=true 
             - wud.trigger.exclude=dockercompose.auto
         volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
             - /docker/compose:/docker/compose
         networks:
             - backend_net
+            - socket_net
+        depends_on:
+            - docker-socket-proxy
+
+    # Create directories that store your stacks and store Dockge's stack
+    # > mkdir -p /opt/stacks /opt/dockge
+    # > cd /opt/dockge
+    # > docker compose up -d
     dockge:
-        image: louislam/dockge:1
+        image: louislam/dockge:latest
         container_name: dockge
         hostname: dockge
         restart: unless-stopped
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         ports:
             - 5001:5001
         volumes:
@@ -51,13 +88,14 @@ services:
             - backend_net
 
     uptime-kuma:
-        image: louislam/uptime-kuma:2
+        image: louislam/uptime-kuma:latest
         container_name: uptime-kuma
         hostname: uptime-kuma
         restart: unless-stopped
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         ports:
             - 3001:3001 # This maps the container port "3001" to the host port "3001"
         volumes:
@@ -85,8 +123,9 @@ services:
         container_name: portainer
         hostname: portainer
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         restart: unless-stopped
         ports:
             - 8000:8000
@@ -104,3 +143,5 @@ volumes:
 networks:
     backend_net:
         external: true
+    socket_net:
+        internal: true

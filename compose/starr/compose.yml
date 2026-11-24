@@ -1,6 +1,6 @@
 services:
     gluetunvpn:
-        image: qmcgaw/gluetun
+        image: qmcgaw/gluetun:latest
         container_name: gluetunvpn
         hostname: gluetunvpn
         cap_add:
@@ -8,8 +8,9 @@ services:
         devices:
             - /dev/net/tun:/dev/net/tun
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /docker/appdata/gluetun:/gluetun
@@ -46,8 +47,9 @@ services:
         container_name: qbittorrent
         network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -75,8 +77,9 @@ services:
         ports:
             - 7476:7476
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -97,8 +100,9 @@ services:
         # NO network_mode here. It uses your normal, fast home internet.
         hostname: sonarr
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -119,8 +123,9 @@ services:
         hostname: radarr
         # NO network_mode here. It uses your normal, fast home internet.
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -141,8 +146,9 @@ services:
         network_mode: "service:gluetunvpn" # Forces all traffic through NordVPN
         # hostname: prowlarr
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -164,8 +170,9 @@ services:
         container_name: lidarr
         hostname: lidarr
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -187,8 +194,9 @@ services:
         ports:
             - 6767:6767
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -209,8 +217,9 @@ services:
         # ports:
         #     - 8191:8191
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - LOG_LEVEL=info
             - LOG_HTML=false
@@ -235,8 +244,9 @@ services:
     #         - 8085:8085
     #         - 9096:9096
     #     labels:
+    #         - wud.watch=true
     #         - wud.watch.digest=true
-    #         - wud.trigger.exclude=dockercompose.auto
+    #         - wud.trigger.include=dockercompose.auto
     #     environment:
     #         - PUID=1000
     #         - PGID=1000

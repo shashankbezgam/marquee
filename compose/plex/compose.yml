@@ -4,8 +4,9 @@ services:
         container_name: plex
         hostname: plex
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -41,7 +42,7 @@ services:
     # A python based web application for monitoring, analytics
     # and notifications for Plex Media Server.
     tautulli:
-        image: ghcr.io/tautulli/tautulli
+        image: ghcr.io/tautulli/tautulli:latest
         container_name: tautulli
         hostname: tautulli
         restart: unless-stopped
@@ -49,8 +50,9 @@ services:
             - /etc/localtime:/etc/localtime:ro
             - /docker/appdata/tautulli:/config
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         environment:
             - PUID=1000
             - PGID=1000
@@ -69,8 +71,9 @@ services:
     #     container_name: seerr
     #     hostname: seerr
     #     labels:
+    #         - wud.watch=true
     #         - wud.watch.digest=true
-    #         - wud.trigger.exclude=dockercompose.auto
+    #         - wud.trigger.include=dockercompose.auto
     #     environment:
     #         - LOG_LEVEL=debug
     #         - PUID=1000

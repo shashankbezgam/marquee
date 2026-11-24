@@ -4,6 +4,10 @@ services:
     #     image: tailscale/tailscale:latest
     #     container_name: tsrouterh52
     #     hostname: tsrouterh52
+    #     labels:
+    #         - wud.watch=true
+    #         - wud.watch.digest=true
+    #         - wud.trigger.include=dockercompose.auto
     #     volumes:
     #         - /docker/appdata/tailscale/state:/var/lib/tailscale
     #         - /lib/modules:/lib/modules:ro
@@ -27,8 +31,9 @@ services:
         hostname: authelia
         restart: unless-stopped
         labels:
+            - wud.watch=true
             - wud.watch.digest=true
-            - wud.trigger.exclude=dockercompose.auto
+            - wud.trigger.include=dockercompose.auto
         env_file:
             - .env
         environment:

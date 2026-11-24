@@ -7,8 +7,8 @@ services:
             - wud.watch.digest=true
             - wud.trigger.exclude=dockercompose.auto
         restart: unless-stopped
-        # ports:
-        # # Bind to internal LAN/VPC IP or firewall port 2375 to allow only Central WUD
+        ports:
+        # Bind to internal LAN/VPC IP or firewall port 2375 to allow only Central WUD
         # - "2375:2375"
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro

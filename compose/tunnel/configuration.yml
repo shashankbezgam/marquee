@@ -1,4 +1,4 @@
-theme: 'light'
+theme: 'auto'
 
 server:
   address: 'tcp://0.0.0.0:9091'
@@ -22,9 +22,9 @@ session:
     - name: 'authelia_session'
       domain: 'home52lab.duckdns.org'
       authelia_url: 'https://auth.home52lab.duckdns.org'
-      default_redirection_url: 'https://seerr.home52lab.duckdns.org'
-      expiration: '1 hour'
-      inactivity: '5 minutes'
+      default_redirection_url: 'https://seerr.home52lab.duckdns.org' # Will be changed to Homepage dashboard
+      expiration: '2 hour'
+      inactivity: '10 minutes'
       remember_me: '1 month'
 
 storage:
@@ -39,11 +39,31 @@ notifier:
 access_control:
   default_policy: 'deny'
   rules:
+    # - domain:
+    #     - '.home52lab.duckdns.org'
+    #   policy: 'bypass'
     - domain:
-        - 'auth.home52lab.duckdns.org'
-        # - 'seerr.home52lab.duckdns.org'
-      policy: 'bypass'
-    - domain:
-        - 'tautulli.home52lab.duckdns.org'
+        # - 'homepage.home52lab.duckdns.org'
         - 'qui.home52lab.duckdns.org'
       policy: 'two_factor'
+
+identity_providers:
+  oidc:
+    jwks:
+      - key_id: 'main'
+        algorithm: 'RS256'
+        use: 'sig'
+        key: {{ secret "/config/keys/private.pem" | mindent 10 "|" | msquote }}
+    clients:
+      - client_id: 'qui'
+        client_name: 'qui'
+        client_secret: '{{ env "QUI_OIDC_CLIENT_SECRET_DIGEST" }}'
+        public: false
+        authorization_policy: 'two_factor'
+        consent_mode: 'implicit'
+        redirect_uris:
+          - 'https://qui.home52lab.duckdns.org/api/auth/oidc/callback'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'

@@ -80,6 +80,8 @@ services:
             - wud.watch=true
             - wud.watch.digest=true
             - wud.trigger.include=dockercompose.auto
+        env_file:
+            - .env
         environment:
             - PUID=1000
             - PGID=1000
